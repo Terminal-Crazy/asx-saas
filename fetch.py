@@ -5,7 +5,7 @@ from io import StringIO
 import os
 import time
 
-# Step 1: Download the ASX listed companies CSV
+# Pull the ASX listed companies CSV
 print("Fetching ASX ticker list...")
 asx_url = "https://www.asx.com.au/asx/research/ASXListedCompanies.csv"
 response = requests.get(asx_url)
@@ -16,7 +16,7 @@ tickers = [t for t in asx_df[1].dropna().tolist() if t != "ASX code"]
 yf_tickers = [f"{t}.AX" for t in tickers]
 print(f"Found {len(yf_tickers)} tickers.")
 
-# Step 2: Download in chunks of 200
+# Break into chunks to avoid rate-limiting from Yahoo API
 CHUNK_SIZE = 200
 PAUSE_SECONDS = 5
 
@@ -63,7 +63,7 @@ for i, chunk in enumerate(chunks):
     if i < total_chunks - 1:
         time.sleep(PAUSE_SECONDS)
 
-# Step 3: Save to CSV
+# Output to CSV
 os.makedirs("output", exist_ok=True)
 out = pd.DataFrame(all_rows)
 out.to_csv("output/prices.csv", index=False)
