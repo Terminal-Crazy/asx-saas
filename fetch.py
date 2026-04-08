@@ -5,12 +5,13 @@ from io import StringIO
 import os
 import time
 
-# Pull the ASX listed companies CSV
+# Pull the ASX listed companies CSV, check HTTP request
 print("Fetching ASX ticker list...")
 asx_url = "https://www.asx.com.au/asx/research/ASXListedCompanies.csv"
 response = requests.get(asx_url)
 response.raise_for_status()
 
+# Parses CSV, creates list array from 3-letter stock code
 asx_df = pd.read_csv(StringIO(response.text), skiprows=2, header=None)
 tickers = [t for t in asx_df[1].dropna().tolist() if t != "ASX code"]
 yf_tickers = [f"{t}.AX" for t in tickers]
@@ -22,7 +23,7 @@ PAUSE_SECONDS = 5
 
 chunks = [yf_tickers[i:i+CHUNK_SIZE] for i in range(0, len(yf_tickers), CHUNK_SIZE)]
 total_chunks = len(chunks)
-print(f"Downloading in {total_chunks} chunks of {CHUNK_SIZE}. Estimated time: under 5 minutes.")
+print(f"Downloading in {total_chunks} chunks of {CHUNK_SIZE}.")
 
 all_rows = []
 failed = []
@@ -63,7 +64,7 @@ for i, chunk in enumerate(chunks):
     if i < total_chunks - 1:
         time.sleep(PAUSE_SECONDS)
 
-# Output to CSV
+# Output to CSV - needs to be modified to go to Network Share
 os.makedirs("output", exist_ok=True)
 out = pd.DataFrame(all_rows)
 out.to_csv("output/prices.csv", index=False)
